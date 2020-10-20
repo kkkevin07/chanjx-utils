@@ -1,6 +1,7 @@
 package com.chanjx.utils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
@@ -8,18 +9,15 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.*;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
@@ -31,6 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author 陈俊雄
@@ -41,9 +40,9 @@ public abstract class HttpClientUtils {
 
     private static final int TIMEOUT = 60;
 
-    private static final String UTF_8 = "UTF-8";
+    private static final String UTF_8 = StandardCharsets.UTF_8.toString();
 
-    private static final BasicHeader BASIC_HEADER = new BasicHeader(HttpHeaders.CONTENT_TYPE, "application/x-www-form-uriencoded; charset=utf-8");
+    private static final BasicHeader BASIC_HEADER = new BasicHeader(HttpHeaders.CONTENT_TYPE, URLEncodedUtils.CONTENT_TYPE);
 
     public static final Map<String, String> JSON_HEADER = new HashMap<String, String>() {
         {
@@ -58,17 +57,6 @@ public abstract class HttpClientUtils {
      */
     public static CloseableHttpClient getHttpClient() {
         return HttpClients.createDefault();
-    }
-
-    public static void test() {
-        Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
-                .register("http", PlainConnectionSocketFactory.INSTANCE)
-                .register("https", new SSLConnectionSocketFactory(SSLContexts.createSystemDefault()))
-                .build();
-        PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager(
-                socketFactoryRegistry);
-        HttpClients.custom().setConnectionManager(connManager);
-
     }
 
     /**
@@ -91,7 +79,7 @@ public abstract class HttpClientUtils {
      * @return 请求结果
      */
     public static String doPostForm(String uri, Map<String, String> params, Map<String, String> headers) {
-        HttpPost httpPost = new HttpPost(uri);
+        final HttpPost httpPost = new HttpPost(uri);
         setFormData(params, httpPost);
         return send(getHttpClient(), httpPost, headers);
     }
@@ -155,8 +143,6 @@ public abstract class HttpClientUtils {
         // 设置请求头
         if (headers != null) {
             headers.forEach(request::setHeader);
-        } else {
-            request.setHeader(BASIC_HEADER);
         }
         // 设置超时时间
         RequestConfig config = RequestConfig.custom()
@@ -201,12 +187,45 @@ public abstract class HttpClientUtils {
             final HttpGet httpGet = new HttpGet(uriBuilder.build());
             return send(getHttpClient(), httpGet, headers);
         } catch (URISyntaxException e) {
-            log.error("Uri解析错误："+ e.getMessage());
+            log.error("Uri解析错误：" + e.getMessage());
             return null;
         }
     }
 
-    public static String doPostMultipartForm(String uri) {
-        return null;
+    public static String doPostMultipartForm(String uri, File file, Map<String, String> params, Map<String, String> headers) {
+        final FileBody fileBody = new FileBody(file.getFile());
+        final MultipartEntityBuilder builder = MultipartEntityBuilder.create()
+                .setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
+                .addPart(file.getKey(), fileBody);
+        final HttpPost httpPost = addParams(uri, params, builder);
+        return send(getHttpClient(), httpPost, headers);
+    }
+
+    public static String doPostMultipartForm(String uri, Files files, Map<String, String> params, Map<String, String> headers) {
+        final List<FileBody> fileBodies = files.getFiles().stream().map(FileBody::new).collect(Collectors.toList());
+        final MultipartEntityBuilder builder = MultipartEntityBuilder.create()
+                .setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+        fileBodies.forEach(fileBody -> builder.addPart(files.getKey(), fileBody));
+        final HttpPost httpPost = addParams(uri, params, builder);
+        return send(getHttpClient(), httpPost, headers);
+    }
+
+    public static String doPostMultipartForm(String uri, List<File> files, Map<String, String> params, Map<String, String> headers) {
+        final MultipartEntityBuilder builder = MultipartEntityBuilder.create()
+                .setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+        files.forEach(file -> {
+            final FileBody fileBody = new FileBody(file.getFile());
+            builder.addPart(file.getKey(), fileBody);
+        });
+        final HttpPost httpPost = addParams(uri, params, builder);
+        return send(getHttpClient(), httpPost, headers);
+    }
+
+    private static HttpPost addParams(String uri, Map<String, String> params, MultipartEntityBuilder builder) {
+        params.forEach(builder::addTextBody);
+        final HttpPost httpPost = new HttpPost(uri);
+        final HttpEntity httpEntity = builder.build();
+        httpPost.setEntity(httpEntity);
+        return httpPost;
     }
 }
