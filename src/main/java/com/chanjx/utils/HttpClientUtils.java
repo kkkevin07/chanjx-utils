@@ -1,5 +1,8 @@
 package com.chanjx.utils;
 
+import com.chanjx.utils.entity.http.BaseFile;
+import com.chanjx.utils.entity.http.HttpFile;
+import com.chanjx.utils.entity.http.HttpFiles;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
@@ -10,10 +13,10 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.*;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicHeader;
@@ -29,7 +32,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author 陈俊雄
@@ -192,31 +194,68 @@ public abstract class HttpClientUtils {
         }
     }
 
-    public static String doPostMultipartForm(String uri, File file, Map<String, String> params, Map<String, String> headers) {
-        final FileBody fileBody = new FileBody(file.getFile());
+    public static String doPostMultipartForm(String uri, HttpFile httpFile, Map<String, String> params) throws IOException {
+        return doPostMultipartForm(uri, httpFile, params, null);
+    }
+
+    public static String doPostMultipartForm(String uri, HttpFile httpFile, Map<String, String> params, Map<String, String> headers) throws IOException {
+        final ContentType contentType = ContentType.create(httpFile.getMimeType());
         final MultipartEntityBuilder builder = MultipartEntityBuilder.create()
                 .setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
-                .addPart(file.getKey(), fileBody);
+                .addBinaryBody(httpFile.getKey(), httpFile.getFileBytes(), contentType, httpFile.getFileName());
         final HttpPost httpPost = addParams(uri, params, builder);
         return send(getHttpClient(), httpPost, headers);
     }
 
-    public static String doPostMultipartForm(String uri, Files files, Map<String, String> params, Map<String, String> headers) {
-        final List<FileBody> fileBodies = files.getFiles().stream().map(FileBody::new).collect(Collectors.toList());
+    public static String doPostMultipartForm(String uri, HttpFiles httpFiles, Map<String, String> params) throws IOException {
+        return doPostMultipartForm(uri, httpFiles, params, null);
+    }
+
+    public static String doPostMultipartForm(String uri, HttpFiles httpFiles, Map<String, String> params, Map<String, String> headers) throws IOException {
+
         final MultipartEntityBuilder builder = MultipartEntityBuilder.create()
                 .setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-        fileBodies.forEach(fileBody -> builder.addPart(files.getKey(), fileBody));
+        for (BaseFile baseFile : httpFiles.getFiles()) {
+            final ContentType contentType = ContentType.create(baseFile.getMimeType());
+            builder.addBinaryBody(httpFiles.getKey(), baseFile.getFileBytes(), contentType, baseFile.getFileName());
+        }
+
         final HttpPost httpPost = addParams(uri, params, builder);
         return send(getHttpClient(), httpPost, headers);
     }
 
-    public static String doPostMultipartForm(String uri, List<File> files, Map<String, String> params, Map<String, String> headers) {
+    public static String doPostMultipartForm(String uri, List<HttpFile> httpFiles, Map<String, String> params) throws IOException {
+        return doPostMultipartForm(uri, httpFiles, params, null);
+    }
+
+    public static String doPostMultipartForm(String uri, List<HttpFile> httpFiles, Map<String, String> params, Map<String, String> headers) throws IOException {
         final MultipartEntityBuilder builder = MultipartEntityBuilder.create()
                 .setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-        files.forEach(file -> {
-            final FileBody fileBody = new FileBody(file.getFile());
-            builder.addPart(file.getKey(), fileBody);
-        });
+
+        for (HttpFile httpFile : httpFiles) {
+            final ContentType contentType = ContentType.create(httpFile.getMimeType());
+            builder.addBinaryBody(httpFile.getKey(), httpFile.getFileBytes(), contentType, httpFile.getFileName());
+        }
+
+        final HttpPost httpPost = addParams(uri, params, builder);
+        return send(getHttpClient(), httpPost, headers);
+    }
+
+    public static String doPostMultipartForm(String uri, HttpFiles httpFiles, List<HttpFile> httpFileList, Map<String, String> params) throws IOException {
+        return doPostMultipartForm(uri, httpFiles, httpFileList, params, null);
+    }
+
+    public static String doPostMultipartForm(String uri, HttpFiles httpFiles, List<HttpFile> httpFileList, Map<String, String> params, Map<String, String> headers) throws IOException {
+        final MultipartEntityBuilder builder = MultipartEntityBuilder.create()
+                .setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+        for (BaseFile baseFile : httpFiles.getFiles()) {
+            final ContentType contentType = ContentType.create(baseFile.getMimeType());
+            builder.addBinaryBody(httpFiles.getKey(), baseFile.getFileBytes(), contentType, baseFile.getFileName());
+        }
+        for (HttpFile httpFile : httpFileList) {
+            final ContentType contentType = ContentType.create(httpFile.getMimeType());
+            builder.addBinaryBody(httpFile.getKey(), httpFile.getFileBytes(), contentType, httpFile.getFileName());
+        }
         final HttpPost httpPost = addParams(uri, params, builder);
         return send(getHttpClient(), httpPost, headers);
     }

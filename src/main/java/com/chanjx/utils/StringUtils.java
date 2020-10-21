@@ -1,7 +1,6 @@
 package com.chanjx.utils;
 
 import java.util.Iterator;
-import java.util.Random;
 
 /**
  * 字符串操作工具
@@ -37,21 +36,6 @@ public abstract class StringUtils extends org.apache.commons.lang3.StringUtils {
 
     public static String joinWithComma(Iterator<?> iterator) {
         return join(iterator, ",");
-    }
-
-    /**
-     * 根据指定长度生成纯数字的随机数
-     *
-     * @param length
-     * @return
-     */
-    public static String getRandomNumber(int length) {
-        StringBuilder sb = new StringBuilder();
-        Random rand = new Random();
-        for (int i = 0; i < length; i++) {
-            sb.append(rand.nextInt(10));
-        }
-        return sb.toString();
     }
 
 }
