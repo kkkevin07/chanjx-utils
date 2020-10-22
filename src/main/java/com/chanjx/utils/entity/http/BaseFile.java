@@ -18,18 +18,30 @@ public class BaseFile implements Serializable {
 
     protected File file;
 
-    protected byte[] fileBytes;
+    protected InputStream fileInputStream;
 
-    protected String mimeType;
+    protected byte[] fileBytes;
 
     protected String fileName;
 
-    protected InputStream fileInputStream;
+    protected String mimeType;
 
     public BaseFile(File file) throws IOException {
         this.file = file;
         this.fileName = file.getName();
         this.mimeType = FileUtils.getMimeType(file);
+    }
+
+    public BaseFile(InputStream fileInputStream, String fileName) throws IOException {
+        this.fileInputStream = fileInputStream;
+        this.fileName = fileName;
+        this.mimeType = FileUtils.getMimeType(fileInputStream);
+    }
+
+    public BaseFile(InputStream fileInputStream, String fileName, String mimeType) {
+        this.fileInputStream = fileInputStream;
+        this.fileName = fileName;
+        this.mimeType = mimeType;
     }
 
     public BaseFile(byte[] fileBytes, String fileName) throws IOException {
@@ -38,10 +50,10 @@ public class BaseFile implements Serializable {
         this.mimeType = FileUtils.getMimeType(fileBytes);
     }
 
-    public BaseFile(InputStream fileInputStream, String fileName) throws IOException {
-        this.fileInputStream = fileInputStream;
+    public BaseFile(byte[] fileBytes, String fileName, String mimeType) {
+        this.fileBytes = fileBytes;
         this.fileName = fileName;
-        this.mimeType = FileUtils.getMimeType(fileInputStream);
+        this.mimeType = mimeType;
     }
 
     public byte[] getFileBytes() throws IOException {

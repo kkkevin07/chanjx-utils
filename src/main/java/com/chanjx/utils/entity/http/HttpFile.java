@@ -22,13 +22,23 @@ public class HttpFile extends BaseFile {
         this.key = key;
     }
 
+    public HttpFile(InputStream fileInputStream, String fileName, String key) throws IOException {
+        super(fileInputStream, fileName);
+        this.key = key;
+    }
+
+    public HttpFile(InputStream fileInputStream, String fileName, String mimeType, String key) {
+        super(fileInputStream, fileName, mimeType);
+        this.key = key;
+    }
+
     public HttpFile(byte[] fileBytes, String fileName, String key) throws IOException {
         super(fileBytes, fileName);
         this.key = key;
     }
 
-    public HttpFile(InputStream fileInputStream, String fileName, String key) throws IOException {
-        super(fileInputStream, fileName);
+    public HttpFile(byte[] fileBytes, String fileName, String mimeType, String key) {
+        super(fileBytes, fileName, mimeType);
         this.key = key;
     }
 

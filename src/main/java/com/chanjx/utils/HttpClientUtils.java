@@ -175,16 +175,16 @@ public abstract class HttpClientUtils {
         return doGet(uri, null, null);
     }
 
-    public static String doGet(String uri, Map<String, String> params) {
-        return doGet(uri, params, null);
+    public static String doGet(String uri, Map<String, String> query) {
+        return doGet(uri, query, null);
     }
 
-    public static String doGet(String uri, Map<String, String> params, Map<String, String> headers) {
+    public static String doGet(String uri, Map<String, String> query, Map<String, String> headers) {
         try {
             final URIBuilder uriBuilder = new URIBuilder(new URI(uri));
             uriBuilder.setCharset(StandardCharsets.UTF_8);
-            if (params != null && params.size() > 0) {
-                params.forEach(uriBuilder::addParameter);
+            if (query != null && query.size() > 0) {
+                query.forEach(uriBuilder::addParameter);
             }
             final HttpGet httpGet = new HttpGet(uriBuilder.build());
             return send(getHttpClient(), httpGet, headers);

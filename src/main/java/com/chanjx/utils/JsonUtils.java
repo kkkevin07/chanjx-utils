@@ -265,7 +265,11 @@ public abstract class JsonUtils {
         return MAPPER.convertValue(obj, beanType);
     }
 
-    public static Map<String, Object> obj2Map(Object obj) {
+    public static Map<String, Object> obj2MapSO(Object obj) {
         return MAPPER.convertValue(obj, getJavaType(Map.class, String.class, Object.class));
+    }
+
+    public static Map<String, String> obj2MapSS(Object obj) {
+        return MAPPER.convertValue(obj, getJavaType(Map.class, String.class, String.class));
     }
 }
