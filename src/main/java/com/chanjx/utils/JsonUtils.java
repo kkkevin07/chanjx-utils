@@ -272,4 +272,13 @@ public abstract class JsonUtils {
     public static Map<String, String> obj2MapSS(Object obj) {
         return MAPPER.convertValue(obj, getJavaType(Map.class, String.class, String.class));
     }
+
+    public static String beautiful(String jsonData) throws IOException {
+        final Object obj = json2Obj(jsonData, Object.class);
+        return MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(obj);
+    }
+
+    public static String beautiful(Object obj) throws JsonProcessingException {
+        return MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(obj);
+    }
 }
