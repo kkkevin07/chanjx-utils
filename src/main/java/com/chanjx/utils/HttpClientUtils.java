@@ -1,15 +1,18 @@
 package com.chanjx.utils;
 
-import com.chanjx.utils.entity.http.*;
+import com.chanjx.utils.entity.http.BaseFile;
+import com.chanjx.utils.entity.http.HttpFile;
+import com.chanjx.utils.entity.http.HttpFiles;
 import com.chanjx.utils.entity.http.HttpResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.*;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.*;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.HttpMultipartMode;
@@ -17,16 +20,19 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static org.apache.http.Consts.UTF_8;
+import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 
 /**
  * @author 陈俊雄
@@ -36,18 +42,6 @@ import java.util.*;
 public abstract class HttpClientUtils {
 
     private static final int TIMEOUT = 60;
-
-    private static final String UTF_8 = StandardCharsets.UTF_8.toString();
-
-    private static final BasicHeader BASIC_HEADER = new BasicHeader(HttpHeaders.CONTENT_TYPE, URLEncodedUtils.CONTENT_TYPE);
-
-    public static final String MIME_TYPE_JSON = "application/json";
-
-    public static final Map<String, String> JSON_HEADER = new HashMap<String, String>() {
-        {
-            put(HttpHeaders.CONTENT_TYPE, MIME_TYPE_JSON);
-        }
-    };
 
     /**
      * 获取HttpClient
@@ -85,75 +79,31 @@ public abstract class HttpClientUtils {
      */
     public static HttpResponse doPostForm(String uri, Map<String, String> params, Map<String, String> headers) {
         final HttpPost httpPost = new HttpPost(uri);
-        setFormData(params, httpPost);
+        setParams(params, httpPost);
         return send(getHttpClient(), httpPost, headers);
     }
 
     public static HttpResponse doPostJson(String uri, String jsonString) {
-        return doPostJson(getHttpClient(), uri, jsonString, JSON_HEADER, UTF_8);
+        return doPostJson(uri, jsonString, null);
     }
 
     public static HttpResponse doPostJson(String uri, String jsonString, Map<String, String> headers) {
         HttpPost httpPost = new HttpPost(uri);
-        StringEntity stringEntity = new StringEntity(jsonString, UTF_8);
-        final String contentType = headers.get(HttpHeaders.CONTENT_TYPE);
-        if (StringUtils.isBlank(contentType) || !StringUtils.startsWith(contentType, MIME_TYPE_JSON)) {
-            headers.putAll(JSON_HEADER);
-        }
-        headers.forEach((k, v) -> stringEntity.setContentType(v));
-        httpPost.setEntity(stringEntity);
+        setJsonBody(jsonString, httpPost);
         return send(getHttpClient(), httpPost, headers);
     }
 
-    public static HttpResponse doPostJson(CloseableHttpClient httpClient, String uri, String jsonString) {
-        return doPostJson(httpClient, uri, jsonString, JSON_HEADER, UTF_8);
-    }
-
-    public static HttpResponse doPostJson(CloseableHttpClient httpClient, String uri, String jsonString, String encoding) {
-        return doPostJson(httpClient, uri, jsonString, JSON_HEADER, encoding);
-    }
-
-    public static HttpResponse doPostJson(CloseableHttpClient httpClient, String uri, String jsonString, Map<String, String> headers, String encoding) {
-        HttpPost httpPost = new HttpPost(uri);
-        StringEntity stringEntity = new StringEntity(jsonString, encoding);
-        headers.forEach((k, v) -> stringEntity.setContentType(v));
-        httpPost.setEntity(stringEntity);
-        return send(httpClient, httpPost, headers);
-    }
-
-    public static HttpResponse doGet(String uri) {
+    public static HttpResponse doGet(String uri) throws URISyntaxException {
         return doGet(uri, null, null);
     }
 
-    public static HttpResponse doGet(String uri, Map<String, String> query) {
+    public static HttpResponse doGet(String uri, Map<String, String> query) throws URISyntaxException {
         return doGet(uri, query, null);
     }
 
-    public static HttpResponse doGet(String uri, Map<String, String> query, Map<String, String> headers) {
-        try {
-            return send(getHttpClient(), setQuery(uri, query), headers);
-        } catch (URISyntaxException e) {
-            log.error("Uri解析错误：" + e.getMessage());
-            return null;
-        }
-    }
-
-    public static HttpResponse doGetByte(String uri, Map<String, String> query) {
-        try {
-            return send(getHttpClient(), setQuery(uri, query), null);
-        } catch (URISyntaxException e) {
-            log.error("Uri解析错误：" + e.getMessage());
-            return null;
-        }
-    }
-
-    public static HttpResponse doGetByte(String uri, Map<String, String> query, Map<String, String> headers) {
-        try {
-            return send(getHttpClient(), setQuery(uri, query), headers);
-        } catch (URISyntaxException e) {
-            log.error("Uri解析错误：" + e.getMessage());
-            return null;
-        }
+    public static HttpResponse doGet(String uri, Map<String, String> query, Map<String, String> headers) throws URISyntaxException {
+        final HttpGet httpGet = new HttpGet(setQuery(uri, query));
+        return send(getHttpClient(), httpGet, headers);
     }
 
     public static HttpResponse doPostMultipartForm(String uri, HttpFile httpFile, Map<String, String> params) throws IOException {
@@ -165,7 +115,7 @@ public abstract class HttpClientUtils {
         final MultipartEntityBuilder builder = MultipartEntityBuilder.create()
                 .setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
                 .addBinaryBody(httpFile.getKey(), httpFile.getFileBytes(), contentType, httpFile.getFileName());
-        final HttpPost httpPost = addParams(uri, params, builder);
+        final HttpPost httpPost = setParams(uri, params, builder);
         return send(getHttpClient(), httpPost, headers);
     }
 
@@ -182,7 +132,7 @@ public abstract class HttpClientUtils {
             builder.addBinaryBody(httpFiles.getKey(), baseFile.getFileBytes(), contentType, baseFile.getFileName());
         }
 
-        final HttpPost httpPost = addParams(uri, params, builder);
+        final HttpPost httpPost = setParams(uri, params, builder);
         return send(getHttpClient(), httpPost, headers);
     }
 
@@ -199,7 +149,7 @@ public abstract class HttpClientUtils {
             builder.addBinaryBody(httpFile.getKey(), httpFile.getFileBytes(), contentType, httpFile.getFileName());
         }
 
-        final HttpPost httpPost = addParams(uri, params, builder);
+        final HttpPost httpPost = setParams(uri, params, builder);
         return send(getHttpClient(), httpPost, headers);
     }
 
@@ -218,11 +168,34 @@ public abstract class HttpClientUtils {
             final ContentType contentType = ContentType.create(httpFile.getMimeType());
             builder.addBinaryBody(httpFile.getKey(), httpFile.getFileBytes(), contentType, httpFile.getFileName());
         }
-        final HttpPost httpPost = addParams(uri, params, builder);
+        final HttpPost httpPost = setParams(uri, params, builder);
         return send(getHttpClient(), httpPost, headers);
     }
 
-    private static HttpPost addParams(String uri, Map<String, String> params, MultipartEntityBuilder builder) {
+    public static HttpResponse doPutJson(String uri, String jsonString) {
+        return doPutJson(uri, jsonString, null);
+    }
+
+    public static HttpResponse doPutJson(String uri, String jsonString, Map<String, String> headers) {
+        final HttpPut httpPut = new HttpPut(uri);
+        setJsonBody(jsonString, httpPut);
+        return send(getHttpClient(), httpPut, headers);
+    }
+
+    public static HttpResponse doDelete(String uri) throws URISyntaxException {
+        return doDelete(uri, null, null);
+    }
+
+    public static HttpResponse doDelete(String uri, Map<String, String> query) throws URISyntaxException {
+        return doDelete(uri, query, null);
+    }
+
+    public static HttpResponse doDelete(String uri, Map<String, String> query, Map<String, String> headers) throws URISyntaxException {
+        final HttpDelete httpDelete = new HttpDelete(setQuery(uri, query));
+        return send(getHttpClient(), httpDelete, headers);
+    }
+
+    private static HttpPost setParams(String uri, Map<String, String> params, MultipartEntityBuilder builder) {
         params.forEach(builder::addTextBody);
         final HttpPost httpPost = new HttpPost(uri);
         final HttpEntity httpEntity = builder.build();
@@ -236,17 +209,29 @@ public abstract class HttpClientUtils {
      * @param params 请求参数
      * @param method Http请求
      */
-    private static void setFormData(Map<String, String> params, HttpEntityEnclosingRequestBase method) {
+    private static void setParams(Map<String, String> params, HttpEntityEnclosingRequestBase method) {
         // 设置请求参数
         if (params != null) {
             List<NameValuePair> nameValuePairList = new ArrayList<>();
             params.forEach((k, v) -> nameValuePairList.add(new BasicNameValuePair(k, v)));
-            try {
-                method.setEntity(new UrlEncodedFormEntity(nameValuePairList, UTF_8));
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
+            method.setEntity(new UrlEncodedFormEntity(nameValuePairList, UTF_8));
         }
+    }
+
+    private static URI setQuery(String uri, Map<String, String> query) throws URISyntaxException {
+        final URIBuilder uriBuilder = new URIBuilder(new URI(uri));
+        uriBuilder.setCharset(StandardCharsets.UTF_8);
+        if (query != null && query.size() > 0) {
+            query.forEach(uriBuilder::addParameter);
+        }
+        return uriBuilder.build();
+    }
+
+    private static void setJsonBody(String jsonString, HttpEntityEnclosingRequestBase method) {
+        final StringEntity stringEntity = new StringEntity(jsonString, UTF_8);
+        stringEntity.setContentType(APPLICATION_JSON.getMimeType());
+        stringEntity.setContentEncoding(UTF_8.name());
+        method.setEntity(stringEntity);
     }
 
     /**
@@ -257,7 +242,7 @@ public abstract class HttpClientUtils {
      * @param headers    请求头
      * @return 请求字符串结果
      */
-    private static HttpResponse send(CloseableHttpClient httpClient, HttpRequestBase request, Map<String, String> headers) {
+    public static HttpResponse send(CloseableHttpClient httpClient, HttpRequestBase request, Map<String, String> headers) {
         setHeaders(request, headers);
         setConfig(request);
 
@@ -300,14 +285,5 @@ public abstract class HttpClientUtils {
                 .setConnectionRequestTimeout(TIMEOUT * 1000)
                 .setSocketTimeout(TIMEOUT * 1000).build();
         request.setConfig(config);
-    }
-
-    private static HttpGet setQuery(String uri, Map<String, String> query) throws URISyntaxException {
-        final URIBuilder uriBuilder = new URIBuilder(new URI(uri));
-        uriBuilder.setCharset(StandardCharsets.UTF_8);
-        if (query != null && query.size() > 0) {
-            query.forEach(uriBuilder::addParameter);
-        }
-        return new HttpGet(uriBuilder.build());
     }
 }

@@ -1,7 +1,5 @@
 package com.chanjx.utils;
 
-import com.sun.istack.internal.Nullable;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,7 +19,7 @@ public enum HttpMethod {
         }
     }
 
-    public static HttpMethod resolve(@Nullable String method) {
+    public static HttpMethod resolve(String method) {
         return (method != null ? mappings.get(method) : null);
     }
 
