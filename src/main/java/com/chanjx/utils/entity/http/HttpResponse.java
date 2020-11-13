@@ -9,6 +9,9 @@ import org.apache.http.protocol.HTTP;
 
 import java.io.Serializable;
 import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author 陈俊雄
@@ -26,7 +29,7 @@ public class HttpResponse implements Serializable {
     /**
      * Response headers
      */
-    private final Header[] headers;
+    private final List<Header> headers;
 
     /**
      * Response body
@@ -55,7 +58,7 @@ public class HttpResponse implements Serializable {
 
     public HttpResponse(Integer status, Header[] headers, byte[] body, ContentType contentType) {
         this.status = status;
-        this.headers = headers;
+        this.headers = Arrays.asList(headers);
         this.body = body;
         this.contentType = contentType;
     }
@@ -64,8 +67,14 @@ public class HttpResponse implements Serializable {
         return status;
     }
 
-    public Header[] getHeaders() {
+    public List<Header> getHeaders() {
         return headers;
+    }
+
+    public List<Header> getHeaders(String name) {
+        return headers.stream()
+                .filter(header -> header.getName().equals(name))
+                .collect(Collectors.toList());
     }
 
     public byte[] getByteBody() {
@@ -77,14 +86,16 @@ public class HttpResponse implements Serializable {
     }
 
     public Charset getCharset() {
-        if (charset == null && contentType != null) {
-            charset = contentType.getCharset();
-            if (charset == null) {
-                final ContentType defaultContentType = ContentType.getByMimeType(contentType.getMimeType());
-                charset = defaultContentType != null ? defaultContentType.getCharset() : null;
+        if (charset == null) {
+            if (contentType != null) {
+                charset = contentType.getCharset();
+                if (charset == null) {
+                    final ContentType defaultContentType = ContentType.getByMimeType(contentType.getMimeType());
+                    charset = defaultContentType != null ? defaultContentType.getCharset() : null;
+                }
+            } else {
+                charset = HTTP.DEF_CONTENT_CHARSET;
             }
-        } else {
-            charset = HTTP.DEF_CONTENT_CHARSET;
         }
         return charset;
     }
