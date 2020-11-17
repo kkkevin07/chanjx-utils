@@ -172,6 +172,16 @@ public abstract class HttpClientUtils {
         return send(getHttpClient(), httpPost, headers);
     }
 
+    public static HttpResponse doPut(String uri, Map<String, String> params) {
+        return doPut(uri, params, null);
+    }
+
+    public static HttpResponse doPut(String uri, Map<String, String> params, Map<String, String> headers) {
+        final HttpPut httpPut = new HttpPut(uri);
+        setParams(params, httpPut);
+        return send(getHttpClient(), httpPut, headers);
+    }
+
     public static HttpResponse doPutJson(String uri, String jsonString) {
         return doPutJson(uri, jsonString, null);
     }
@@ -251,7 +261,7 @@ public abstract class HttpClientUtils {
         try {
             // 执行请求
             CloseableHttpResponse response = httpClient.execute(request);
-            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+            if (response.getStatusLine().getStatusCode() > HttpStatus.SC_MULTI_STATUS || response.getStatusLine().getStatusCode() < HttpStatus.SC_OK) {
                 log.warn("Response status code:" + response.getStatusLine().getStatusCode());
             }
             // 获取请求返回消息
