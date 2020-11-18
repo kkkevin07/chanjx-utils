@@ -33,6 +33,7 @@ import java.util.Map;
 
 import static org.apache.http.Consts.UTF_8;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
+import static org.apache.http.entity.ContentType.APPLICATION_XML;
 
 /**
  * @author 陈俊雄
@@ -56,6 +57,19 @@ public abstract class HttpClientUtils {
         return HttpClientBuilder.create()
                 .setDefaultCredentialsProvider(provide)
                 .build();
+    }
+
+    public static HttpResponse doGet(String uri) throws URISyntaxException {
+        return doGet(uri, null, null);
+    }
+
+    public static HttpResponse doGet(String uri, Map<String, String> query) throws URISyntaxException {
+        return doGet(uri, query, null);
+    }
+
+    public static HttpResponse doGet(String uri, Map<String, String> query, Map<String, String> headers) throws URISyntaxException {
+        final HttpGet httpGet = new HttpGet(setQuery(uri, query));
+        return send(getHttpClient(), httpGet, headers);
     }
 
     /**
@@ -83,27 +97,24 @@ public abstract class HttpClientUtils {
         return send(getHttpClient(), httpPost, headers);
     }
 
-    public static HttpResponse doPostJson(String uri, String jsonString) {
-        return doPostJson(uri, jsonString, null);
+    public static HttpResponse doPostJson(String uri, String jsonStr) {
+        return doPostJson(uri, jsonStr, null);
     }
 
-    public static HttpResponse doPostJson(String uri, String jsonString, Map<String, String> headers) {
+    public static HttpResponse doPostJson(String uri, String jsonStr, Map<String, String> headers) {
         HttpPost httpPost = new HttpPost(uri);
-        setJsonBody(jsonString, httpPost);
+        setJsonBody(jsonStr, httpPost);
         return send(getHttpClient(), httpPost, headers);
     }
 
-    public static HttpResponse doGet(String uri) throws URISyntaxException {
-        return doGet(uri, null, null);
+    public static HttpResponse doPostXml(String uri, String xmlStr) {
+        return doPostXml(uri, xmlStr, null);
     }
 
-    public static HttpResponse doGet(String uri, Map<String, String> query) throws URISyntaxException {
-        return doGet(uri, query, null);
-    }
-
-    public static HttpResponse doGet(String uri, Map<String, String> query, Map<String, String> headers) throws URISyntaxException {
-        final HttpGet httpGet = new HttpGet(setQuery(uri, query));
-        return send(getHttpClient(), httpGet, headers);
+    public static HttpResponse doPostXml(String uri, String xmlStr, Map<String, String> headers) {
+        HttpPost httpPost = new HttpPost(uri);
+        setXmlBody(xmlStr, httpPost);
+        return send(getHttpClient(), httpPost, headers);
     }
 
     public static HttpResponse doPostMultipartForm(String uri, HttpFile httpFile, Map<String, String> params) throws IOException {
@@ -182,13 +193,23 @@ public abstract class HttpClientUtils {
         return send(getHttpClient(), httpPut, headers);
     }
 
-    public static HttpResponse doPutJson(String uri, String jsonString) {
-        return doPutJson(uri, jsonString, null);
+    public static HttpResponse doPutJson(String uri, String jsonStr) {
+        return doPutJson(uri, jsonStr, null);
     }
 
-    public static HttpResponse doPutJson(String uri, String jsonString, Map<String, String> headers) {
+    public static HttpResponse doPutJson(String uri, String jsonStr, Map<String, String> headers) {
         final HttpPut httpPut = new HttpPut(uri);
-        setJsonBody(jsonString, httpPut);
+        setJsonBody(jsonStr, httpPut);
+        return send(getHttpClient(), httpPut, headers);
+    }
+
+    public static HttpResponse doPutXml(String uri, String xmlStr) {
+        return doPutXml(uri, xmlStr, null);
+    }
+
+    public static HttpResponse doPutXml(String uri, String xmlStr, Map<String, String> headers) {
+        final HttpPut httpPut = new HttpPut(uri);
+        setXmlBody(xmlStr, httpPut);
         return send(getHttpClient(), httpPut, headers);
     }
 
@@ -237,10 +258,17 @@ public abstract class HttpClientUtils {
         return uriBuilder.build();
     }
 
-    private static void setJsonBody(String jsonString, HttpEntityEnclosingRequestBase method) {
-        final StringEntity stringEntity = new StringEntity(jsonString, UTF_8);
+    private static void setJsonBody(String jsonStr, HttpEntityEnclosingRequestBase method) {
+        final StringEntity stringEntity = new StringEntity(jsonStr, APPLICATION_JSON.getCharset());
         stringEntity.setContentType(APPLICATION_JSON.getMimeType());
-        stringEntity.setContentEncoding(UTF_8.name());
+        stringEntity.setContentEncoding(APPLICATION_JSON.getCharset().name());
+        method.setEntity(stringEntity);
+    }
+
+    private static void setXmlBody(String xmlStr, HttpEntityEnclosingRequestBase method) {
+        final StringEntity stringEntity = new StringEntity(xmlStr, APPLICATION_XML.getCharset());
+        stringEntity.setContentType(APPLICATION_XML.getMimeType());
+        stringEntity.setContentEncoding(APPLICATION_XML.getCharset().name());
         method.setEntity(stringEntity);
     }
 

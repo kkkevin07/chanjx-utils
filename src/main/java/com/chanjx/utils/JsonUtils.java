@@ -22,6 +22,7 @@ import java.util.Map;
  **/
 @Slf4j
 public abstract class JsonUtils {
+
     private static final ObjectMapper MAPPER = new ObjectMapper()
             // 反序列化忽略Json对象在实体类中没有的字段
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -52,19 +53,6 @@ public abstract class JsonUtils {
      * 实体类转json字符串，并忽略实体类为空的字段
      *
      * @param obj obj
-     * @return jsonBytes
-     * @throws JsonProcessingException e
-     */
-    public static byte[] obj2JsonNonNullBytes(Object obj) throws JsonProcessingException {
-        final ObjectMapper copy = MAPPER.copy()
-                .setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        return copy.writeValueAsString(obj).getBytes();
-    }
-
-    /**
-     * 实体类转json字符串，并忽略实体类为空的字段
-     *
-     * @param obj obj
      * @return jsonStr
      * @throws JsonProcessingException e
      */
@@ -72,6 +60,19 @@ public abstract class JsonUtils {
         final ObjectMapper copy = MAPPER.copy()
                 .setSerializationInclusion(JsonInclude.Include.NON_NULL);
         return copy.writeValueAsString(obj);
+    }
+
+    /**
+     * 实体类转json字符串，并忽略实体类为空的字段
+     *
+     * @param obj obj
+     * @return jsonBytes
+     * @throws JsonProcessingException e
+     */
+    public static byte[] obj2JsonNonNullBytes(Object obj) throws JsonProcessingException {
+        final ObjectMapper copy = MAPPER.copy()
+                .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        return copy.writeValueAsString(obj).getBytes();
     }
 
     /**
@@ -104,89 +105,89 @@ public abstract class JsonUtils {
     /**
      * json字符串转实体类
      *
-     * @param jsonData jsonStr
-     * @param beanType Class
-     * @param <T>      T
+     * @param jsonStr jsonStr
+     * @param clazz   Class
+     * @param <T>     T
      * @return T
      * @throws IOException e
      */
-    public static <T> T json2Obj(String jsonData, Class<T> beanType) throws IOException {
-        return MAPPER.readValue(jsonData, beanType);
+    public static <T> T json2Obj(String jsonStr, Class<T> clazz) throws IOException {
+        return MAPPER.readValue(jsonStr, clazz);
     }
 
     /**
      * 带根值的json字符串转实体类
      *
-     * @param jsonData jsonStr
-     * @param beanType Class
-     * @param <T>      T
+     * @param jsonStr jsonStr
+     * @param clazz   Class
+     * @param <T>     T
      * @return T
      * @throws IOException e
      */
-    public static <T> T json2ObjUnwrapRootValue(String jsonData, Class<T> beanType) throws IOException {
+    public static <T> T json2ObjUnwrapRootValue(String jsonStr, Class<T> clazz) throws IOException {
         final ObjectMapper copy = MAPPER.copy()
                 .configure(DeserializationFeature.UNWRAP_ROOT_VALUE, true);
-        return copy.readValue(jsonData, beanType);
+        return copy.readValue(jsonStr, clazz);
     }
 
     /**
      * json字符串转实体类
      *
-     * @param jsonData jsonStr
+     * @param jsonStr  jsonStr
      * @param javaType javaType可通过{@link #getJavaType}获取
      * @param <T>      T
      * @return T
      * @throws IOException e
      */
-    public static <T> T json2Obj(String jsonData, JavaType javaType) throws IOException {
-        return MAPPER.readValue(jsonData, javaType);
+    public static <T> T json2Obj(String jsonStr, JavaType javaType) throws IOException {
+        return MAPPER.readValue(jsonStr, javaType);
     }
 
     /**
      * 带根值的json字符串转实体类
      *
-     * @param jsonData jsonStr
+     * @param jsonStr  jsonStr
      * @param javaType Class
      * @param <T>      T
      * @return T
      * @throws IOException e
      */
-    public static <T> T json2ObjUnwrapRootValue(String jsonData, JavaType javaType) throws IOException {
+    public static <T> T json2ObjUnwrapRootValue(String jsonStr, JavaType javaType) throws IOException {
         final ObjectMapper copy = MAPPER.copy()
                 .configure(DeserializationFeature.UNWRAP_ROOT_VALUE, true);
-        return copy.readValue(jsonData, javaType);
+        return copy.readValue(jsonStr, javaType);
     }
 
     /**
      * json字符串转实体类
      * {@link #getJavaType(Class, Class[])}
      *
-     * @param jsonData         jsonStr
+     * @param jsonStr          jsonStr
      * @param parametrized     class
      * @param parameterClasses class[]
      * @param <T>              T
      * @return T
      * @throws IOException e
      */
-    public static <T> T json2Obj(String jsonData, Class<?> parametrized, Class<?>... parameterClasses) throws IOException {
-        return MAPPER.readValue(jsonData, getJavaType(parametrized, parameterClasses));
+    public static <T> T json2Obj(String jsonStr, Class<?> parametrized, Class<?>... parameterClasses) throws IOException {
+        return MAPPER.readValue(jsonStr, getJavaType(parametrized, parameterClasses));
     }
 
     /**
      * json字符串转实体类
      * {@link #getJavaType(Class, JavaType...)}
      *
-     * @param jsonData         jsonStr
+     * @param jsonStr          jsonStr
      * @param parametrized     class
      * @param parameterClasses class[]
      * @param <T>              T
      * @return T
      * @throws IOException e
      */
-    public static <T> T json2ObjUnwrapRootValue(String jsonData, Class<?> parametrized, Class<?>... parameterClasses) throws IOException {
+    public static <T> T json2ObjUnwrapRootValue(String jsonStr, Class<?> parametrized, Class<?>... parameterClasses) throws IOException {
         final ObjectMapper copy = MAPPER.copy()
                 .configure(DeserializationFeature.UNWRAP_ROOT_VALUE, true);
-        return copy.readValue(jsonData, getJavaType(parametrized, parameterClasses));
+        return copy.readValue(jsonStr, getJavaType(parametrized, parameterClasses));
     }
 
     /**
@@ -228,53 +229,57 @@ public abstract class JsonUtils {
     /**
      * json字符串转Map
      *
-     * @param jsonData jsonStr
-     * @param k        key
-     * @param v        value
-     * @param <K>      key class
-     * @param <V>      value class
+     * @param jsonStr jsonStr
+     * @param k       key
+     * @param v       value
+     * @param <K>     key class
+     * @param <V>     value class
      * @return map
      * @throws IOException e
      */
-    public static <K, V> HashMap<K, V> json2HashMap(String jsonData, Class<K> k, Class<V> v) throws IOException {
-        return MAPPER.readValue(jsonData, TypeFactory.defaultInstance().constructMapType(HashMap.class, k, v));
+    public static <K, V> HashMap<K, V> json2HashMap(String jsonStr, Class<K> k, Class<V> v) throws IOException {
+        return MAPPER.readValue(jsonStr, TypeFactory.defaultInstance().constructMapType(HashMap.class, k, v));
     }
 
     /**
      * json字符串转list
      *
-     * @param jsonData jsonStr
-     * @param t        class
-     * @param <T>      T
+     * @param jsonStr jsonStr
+     * @param t       class
+     * @param <T>     T
      * @return list
      * @throws IOException e
      */
-    public static <T> List<T> json2List(String jsonData, Class<T> t) throws IOException {
-        return MAPPER.readValue(jsonData, TypeFactory.defaultInstance().constructCollectionType(List.class, t));
+    public static <T> List<T> json2List(String jsonStr, Class<T> t) throws IOException {
+        return MAPPER.readValue(jsonStr, TypeFactory.defaultInstance().constructCollectionType(List.class, t));
     }
 
     /**
      * map等对象转实体类，通过映射方式
      *
-     * @param obj      obj
-     * @param beanType class
-     * @param <T>      T
+     * @param map   map
+     * @param clazz class
+     * @param <T>   T
      * @return T
      */
-    public static <T> T obj2Class(Object obj, Class<T> beanType) {
-        return MAPPER.convertValue(obj, beanType);
+    public static <T> T map2Obj(Map<?, ?> map, Class<T> clazz) {
+        return MAPPER.convertValue(map, clazz);
     }
 
     public static Map<String, Object> obj2MapSO(Object obj) {
-        return MAPPER.convertValue(obj, getJavaType(Map.class, String.class, Object.class));
+        return MAPPER.convertValue(
+                obj,
+                TypeFactory.defaultInstance().constructMapType(HashMap.class, String.class, Object.class));
     }
 
     public static Map<String, String> obj2MapSS(Object obj) {
-        return MAPPER.convertValue(obj, getJavaType(Map.class, String.class, String.class));
+        return MAPPER.convertValue(
+                obj,
+                TypeFactory.defaultInstance().constructMapType(HashMap.class, String.class, String.class));
     }
 
-    public static String beautiful(String jsonData) throws IOException {
-        final Object obj = json2Obj(jsonData, Object.class);
+    public static String beautiful(String jsonStr) throws IOException {
+        final Object obj = json2Obj(jsonStr, Object.class);
         return MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(obj);
     }
 
