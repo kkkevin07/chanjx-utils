@@ -117,6 +117,16 @@ public abstract class HttpClientUtils {
         return send(getHttpClient(), httpPost, headers);
     }
 
+    public static HttpResponse doPostRow(String uri, String rowStr, ContentType contentType) {
+        return doPostRow(uri, rowStr, null, contentType);
+    }
+
+    public static HttpResponse doPostRow(String uri, String rowStr, Map<String, String> headers, ContentType contentType) {
+        HttpPost httpPost = new HttpPost(uri);
+        setRowBody(rowStr, httpPost, contentType);
+        return send(getHttpClient(), httpPost, headers);
+    }
+
     public static HttpResponse doPostMultipartForm(String uri, HttpFile httpFile, Map<String, String> params) throws IOException {
         return doPostMultipartForm(uri, httpFile, params, null);
     }
@@ -226,7 +236,7 @@ public abstract class HttpClientUtils {
         return send(getHttpClient(), httpDelete, headers);
     }
 
-    private static HttpPost setParams(String uri, Map<String, String> params, MultipartEntityBuilder builder) {
+    public static HttpPost setParams(String uri, Map<String, String> params, MultipartEntityBuilder builder) {
         params.forEach(builder::addTextBody);
         final HttpPost httpPost = new HttpPost(uri);
         final HttpEntity httpEntity = builder.build();
@@ -240,7 +250,7 @@ public abstract class HttpClientUtils {
      * @param params 请求参数
      * @param method Http请求
      */
-    private static void setParams(Map<String, String> params, HttpEntityEnclosingRequestBase method) {
+    public static void setParams(Map<String, String> params, HttpEntityEnclosingRequestBase method) {
         // 设置请求参数
         if (params != null) {
             List<NameValuePair> nameValuePairList = new ArrayList<>();
@@ -249,7 +259,7 @@ public abstract class HttpClientUtils {
         }
     }
 
-    private static URI setQuery(String uri, Map<String, String> query) throws URISyntaxException {
+    public static URI setQuery(String uri, Map<String, String> query) throws URISyntaxException {
         final URIBuilder uriBuilder = new URIBuilder(new URI(uri));
         uriBuilder.setCharset(StandardCharsets.UTF_8);
         if (query != null && query.size() > 0) {
@@ -258,17 +268,18 @@ public abstract class HttpClientUtils {
         return uriBuilder.build();
     }
 
-    private static void setJsonBody(String jsonStr, HttpEntityEnclosingRequestBase method) {
-        final StringEntity stringEntity = new StringEntity(jsonStr, APPLICATION_JSON.getCharset());
-        stringEntity.setContentType(APPLICATION_JSON.getMimeType());
-        stringEntity.setContentEncoding(APPLICATION_JSON.getCharset().name());
-        method.setEntity(stringEntity);
+    public static void setJsonBody(String jsonStr, HttpEntityEnclosingRequestBase method) {
+        setRowBody(jsonStr, method, APPLICATION_JSON);
     }
 
-    private static void setXmlBody(String xmlStr, HttpEntityEnclosingRequestBase method) {
-        final StringEntity stringEntity = new StringEntity(xmlStr, APPLICATION_XML.getCharset());
-        stringEntity.setContentType(APPLICATION_XML.getMimeType());
-        stringEntity.setContentEncoding(APPLICATION_XML.getCharset().name());
+    public static void setXmlBody(String xmlStr, HttpEntityEnclosingRequestBase method) {
+        setRowBody(xmlStr, method, APPLICATION_XML);
+    }
+
+    public static void setRowBody(String rowStr, HttpEntityEnclosingRequestBase method, ContentType contentType) {
+        final StringEntity stringEntity = new StringEntity(rowStr, contentType.getCharset());
+        stringEntity.setContentType(contentType.getMimeType());
+        stringEntity.setContentEncoding(contentType.getCharset().name());
         method.setEntity(stringEntity);
     }
 
@@ -309,14 +320,14 @@ public abstract class HttpClientUtils {
         return result;
     }
 
-    private static void setHeaders(HttpRequestBase request, Map<String, String> headers) {
+    public static void setHeaders(HttpRequestBase request, Map<String, String> headers) {
         // 设置请求头
         if (headers != null) {
             headers.forEach(request::setHeader);
         }
     }
 
-    private static void setConfig(HttpRequestBase request) {
+    public static void setConfig(HttpRequestBase request) {
         // 设置超时时间
         RequestConfig config = RequestConfig.custom()
                 .setConnectTimeout(TIMEOUT * 1000)
