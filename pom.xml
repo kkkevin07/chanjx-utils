@@ -46,7 +46,8 @@
         <lombok.version>1.18.14</lombok.version>
         <commons-lang3.version>3.9</commons-lang3.version>
         <jackson.version>2.11.3</jackson.version>
-        <slf4j-api.version>2.0.0-alpha1</slf4j-api.version>
+        <logback.version>1.2.3</logback.version>
+        <slf4j-api.version>1.7.30</slf4j-api.version>
         <junit.version>4.13.1</junit.version>
         <tika-core.version>1.24.1</tika-core.version>
         <commons-io.version>2.8.0</commons-io.version>
@@ -98,17 +99,27 @@
             <version>${lombok.version}</version>
         </dependency>
 
+        <!-- logback -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>${logback.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- slf4j -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>${slf4j-api.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>${slf4j-api.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -120,6 +131,12 @@
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-xml</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
             <version>${jackson.version}</version>
         </dependency>
 
