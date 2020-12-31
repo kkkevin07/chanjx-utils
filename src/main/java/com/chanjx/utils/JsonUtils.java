@@ -111,7 +111,7 @@ public abstract class JsonUtils {
      * @return T
      * @throws IOException e
      */
-    public static <T> T json2Obj(String jsonStr, Class<T> clazz) throws IOException {
+    public static <T> T json2Obj(String jsonStr, Class<T> clazz) throws JsonProcessingException {
         return MAPPER.readValue(jsonStr, clazz);
     }
 

@@ -12,7 +12,7 @@ import java.net.URL;
  * @since 2020/10/21
  **/
 public abstract class FileUtils extends org.apache.commons.io.FileUtils {
-    public static final Tika TIKA = new Tika();
+    private static final Tika TIKA = new Tika();
 
     public static String getMimeType(File file) throws IOException {
         return TIKA.detect(file);

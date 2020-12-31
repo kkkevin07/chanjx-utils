@@ -5,9 +5,7 @@ import com.chanjx.utils.entity.http.HttpFile;
 import com.chanjx.utils.entity.http.HttpFiles;
 import com.chanjx.utils.entity.http.HttpResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpStatus;
-import org.apache.http.NameValuePair;
+import org.apache.http.*;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -26,12 +24,12 @@ import org.apache.http.util.EntityUtils;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.apache.http.Consts.UTF_8;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 import static org.apache.http.entity.ContentType.APPLICATION_XML;
 
@@ -93,8 +91,7 @@ public abstract class HttpClientUtils {
      */
     public static HttpResponse doPostForm(String uri, Map<String, String> params, Map<String, String> headers) {
         final HttpPost httpPost = new HttpPost(uri);
-        setParams(params, httpPost);
-        return send(getHttpClient(), httpPost, headers);
+        return sendForm(params, headers, httpPost);
     }
 
     public static HttpResponse doPostJson(String uri, String jsonStr) {
@@ -199,8 +196,20 @@ public abstract class HttpClientUtils {
 
     public static HttpResponse doPut(String uri, Map<String, String> params, Map<String, String> headers) {
         final HttpPut httpPut = new HttpPut(uri);
-        setParams(params, httpPut);
-        return send(getHttpClient(), httpPut, headers);
+        return sendForm(params, headers, httpPut);
+    }
+
+    private static HttpResponse sendForm(Map<String, String> params, Map<String, String> headers, HttpEntityEnclosingRequestBase method) {
+        final String mimeType = headers.get(HttpHeaders.CONTENT_TYPE);
+        final ContentType contentType;
+        if (StringUtils.isNotBlank(mimeType)) {
+            contentType = ContentType.parse(mimeType);
+        } else {
+            contentType = ContentType.APPLICATION_FORM_URLENCODED;
+            headers.put(HttpHeaders.CONTENT_TYPE, contentType.toString());
+        }
+        setParams(params, method, contentType.getCharset());
+        return send(getHttpClient(), method, headers);
     }
 
     public static HttpResponse doPutJson(String uri, String jsonStr) {
@@ -250,12 +259,15 @@ public abstract class HttpClientUtils {
      * @param params 请求参数
      * @param method Http请求
      */
-    public static void setParams(Map<String, String> params, HttpEntityEnclosingRequestBase method) {
+    public static void setParams(Map<String, String> params, HttpEntityEnclosingRequestBase method, Charset charset) {
         // 设置请求参数
         if (params != null) {
+            if (charset == null) {
+                charset = Consts.ISO_8859_1;
+            }
             List<NameValuePair> nameValuePairList = new ArrayList<>();
             params.forEach((k, v) -> nameValuePairList.add(new BasicNameValuePair(k, v)));
-            method.setEntity(new UrlEncodedFormEntity(nameValuePairList, UTF_8));
+            method.setEntity(new UrlEncodedFormEntity(nameValuePairList, charset));
         }
     }
 
@@ -301,7 +313,7 @@ public abstract class HttpClientUtils {
             // 执行请求
             CloseableHttpResponse response = httpClient.execute(request);
             if (response.getStatusLine().getStatusCode() > HttpStatus.SC_MULTI_STATUS || response.getStatusLine().getStatusCode() < HttpStatus.SC_OK) {
-                log.warn("Response status code:" + response.getStatusLine().getStatusCode());
+                log.warn("Request uri: " + request.getURI().toString() + " - Response status code: " + response.getStatusLine().getStatusCode());
             }
             // 获取请求返回消息
             final HttpEntity entity = response.getEntity();
