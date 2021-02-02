@@ -129,9 +129,10 @@ public abstract class HttpClientUtils {
     }
 
     public static HttpResponse doPostMultipartForm(String uri, HttpFile httpFile, Map<String, String> params, Map<String, String> headers) throws IOException {
-        final ContentType contentType = ContentType.create(httpFile.getMimeType());
+        final ContentType contentType = ContentType.parse(httpFile.getMimeType());
         final MultipartEntityBuilder builder = MultipartEntityBuilder.create()
                 .setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
+                .setCharset(StandardCharsets.UTF_8)
                 .addBinaryBody(httpFile.getKey(), httpFile.getFileBytes(), contentType, httpFile.getFileName());
         final HttpPost httpPost = setParams(uri, params, builder);
         return send(getHttpClient(), httpPost, headers);
@@ -258,6 +259,7 @@ public abstract class HttpClientUtils {
      *
      * @param params 请求参数
      * @param method Http请求
+     * @param charset 字符集
      */
     public static void setParams(Map<String, String> params, HttpEntityEnclosingRequestBase method, Charset charset) {
         // 设置请求参数
