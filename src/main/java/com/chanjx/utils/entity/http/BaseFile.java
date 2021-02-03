@@ -16,10 +16,6 @@ import java.io.Serializable;
 @Accessors(chain = true)
 public class BaseFile implements Serializable {
 
-    protected File file;
-
-    protected InputStream fileInputStream;
-
     protected byte[] fileBytes;
 
     protected String fileName;
@@ -27,19 +23,19 @@ public class BaseFile implements Serializable {
     protected String mimeType;
 
     public BaseFile(File file) throws IOException {
-        this.file = file;
+        this.fileBytes = FileUtils.readFileToByteArray(file);
         this.fileName = file.getName();
         this.mimeType = FileUtils.getMimeType(file);
     }
 
     public BaseFile(InputStream fileInputStream, String fileName) throws IOException {
-        this.fileInputStream = fileInputStream;
+        this.fileBytes = IOUtils.toByteArray(fileInputStream);
         this.fileName = fileName;
-        this.mimeType = FileUtils.getMimeType(fileInputStream);
+        this.mimeType = FileUtils.getMimeType(this.fileBytes);
     }
 
-    public BaseFile(InputStream fileInputStream, String fileName, String mimeType) {
-        this.fileInputStream = fileInputStream;
+    public BaseFile(InputStream fileInputStream, String fileName, String mimeType) throws IOException {
+        this.fileBytes = IOUtils.toByteArray(fileInputStream);
         this.fileName = fileName;
         this.mimeType = mimeType;
     }
@@ -56,21 +52,13 @@ public class BaseFile implements Serializable {
         this.mimeType = mimeType;
     }
 
-    public byte[] getFileBytes() throws IOException {
-        if (this.fileBytes == null && this.file != null && this.file.exists()) {
-            this.fileBytes = FileUtils.readFileToByteArray(this.file);
-            return this.fileBytes;
-        } else if (this.fileInputStream != null) {
-            this.fileBytes = IOUtils.toByteArray(fileInputStream);
-            return this.fileBytes;
-        }
+    public byte[] getFileBytes() {
         return this.fileBytes;
     }
 
     public String getMimeType() {
         return mimeType;
     }
-
 
     public String getFileName() {
         return fileName;

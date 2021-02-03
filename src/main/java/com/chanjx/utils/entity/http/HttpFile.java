@@ -27,7 +27,7 @@ public class HttpFile extends BaseFile {
         this.key = key;
     }
 
-    public HttpFile(InputStream fileInputStream, String fileName, String mimeType, String key) {
+    public HttpFile(InputStream fileInputStream, String fileName, String mimeType, String key) throws IOException {
         super(fileInputStream, fileName, mimeType);
         this.key = key;
     }
