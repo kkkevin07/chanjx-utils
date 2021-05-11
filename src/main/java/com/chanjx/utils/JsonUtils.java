@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import lombok.extern.slf4j.Slf4j;
 
@@ -285,5 +286,15 @@ public abstract class JsonUtils {
 
     public static String beautiful(Object obj) throws JsonProcessingException {
         return MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(obj);
+    }
+
+    public static boolean hasKey(String jsonStr, String key) throws JsonProcessingException {
+        final ObjectNode jsonNodes = MAPPER.readValue(jsonStr, ObjectNode.class);
+        return jsonNodes.has(key);
+    }
+
+    public static boolean hasIndex(String jsonStr, int index) throws JsonProcessingException {
+        final ObjectNode jsonNodes = MAPPER.readValue(jsonStr, ObjectNode.class);
+        return jsonNodes.has(index);
     }
 }
