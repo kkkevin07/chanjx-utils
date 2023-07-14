@@ -5,14 +5,14 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.http.entity.ContentType;
-import org.junit.Test;
+import org.apache.hc.core5.http.ContentType;
+import org.junit.jupiter.api.Test;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
- * @author 陈俊雄
+ * @author chanjx
  * @since 2020/10/21
  **/
 @Slf4j

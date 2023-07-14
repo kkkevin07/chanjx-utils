@@ -3,23 +3,28 @@ package com.chanjx.utils.entity.http;
 import com.chanjx.utils.StringUtils;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.apache.http.Header;
-import org.apache.http.entity.ContentType;
-import org.apache.http.protocol.HTTP;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.Header;
 
 import java.io.Serializable;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * @author 陈俊雄
+ * @author chanjx
  * @since 2020/11/9
  **/
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 public class HttpResponse implements Serializable {
+
+    /**
+     * @see <a href="https://datatracker.ietf.org/doc/html/rfc6838#section-4.2.1">若未指定字符集应使用UTF-8</a>
+     */
+    private final static Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
     /**
      * Http status
@@ -64,57 +69,53 @@ public class HttpResponse implements Serializable {
     }
 
     public Integer getStatus() {
-        return status;
+        return this.status;
     }
 
     public List<Header> getHeaders() {
-        return headers;
+        return this.headers;
     }
 
     public List<Header> getHeaders(String name) {
-        return headers.stream()
+        return this.headers.stream()
                 .filter(header -> header.getName().equals(name))
                 .collect(Collectors.toList());
     }
 
     public byte[] getByteBody() {
-        return body;
+        return this.body;
     }
 
     public ContentType getContentType() {
-        return contentType;
+        return this.contentType;
     }
 
     public Charset getCharset() {
-        if (charset == null) {
-            if (contentType != null) {
-                charset = contentType.getCharset();
-                if (charset == null) {
-                    final ContentType defaultContentType = ContentType.getByMimeType(contentType.getMimeType());
-                    charset = defaultContentType != null ? defaultContentType.getCharset() : null;
-                }
+        if (this.charset == null) {
+            if (this.contentType != null && this.contentType.getCharset() != null) {
+                this.charset = this.contentType.getCharset();
             } else {
-                charset = HTTP.DEF_CONTENT_CHARSET;
+                this.charset = DEFAULT_CHARSET;
             }
         }
-        return charset;
+        return this.charset;
     }
 
     public String getMimeType() {
-        if (StringUtils.isBlank(mimeType) && contentType != null) {
-            mimeType = contentType.getMimeType();
+        if (StringUtils.isBlank(this.mimeType) && this.contentType != null) {
+            this.mimeType = this.contentType.getMimeType();
         }
-        return mimeType;
+        return this.mimeType;
     }
 
-    public String getBody() {
-        if (StringUtils.isBlank(strBody)) {
-            if (charset == null) {
-                getCharset();
+    public String getStrBody() {
+        if (StringUtils.isBlank(this.strBody)) {
+            if (this.getCharset() != null) {
+                this.strBody = new String(this.body, this.getCharset());
+            } else {
+                this.strBody = new String(this.body, DEFAULT_CHARSET);
             }
-            strBody = new String(body, charset);
         }
-
-        return strBody;
+        return this.strBody;
     }
 }

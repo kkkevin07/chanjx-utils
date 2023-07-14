@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @author 陈俊雄
+ * @author chanjx
  * @since 2020/11/12
  **/
 public enum HttpMethod {

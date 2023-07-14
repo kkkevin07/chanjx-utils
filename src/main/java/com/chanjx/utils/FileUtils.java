@@ -8,7 +8,7 @@ import java.io.InputStream;
 import java.net.URL;
 
 /**
- * @author 陈俊雄
+ * @author chanjx
  * @since 2020/10/21
  **/
 public abstract class FileUtils extends org.apache.commons.io.FileUtils {

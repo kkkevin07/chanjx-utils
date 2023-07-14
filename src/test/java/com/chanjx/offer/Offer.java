@@ -1,9 +1,9 @@
 package com.chanjx.offer;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
- * @author 陈俊雄
+ * @author chanjx
  * @since 2020/11/25
  **/
 public class Offer {

@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * @author 陈俊雄
+ * @author chanjx
  * @since 2020/10/20
  **/
 @EqualsAndHashCode(callSuper = true)

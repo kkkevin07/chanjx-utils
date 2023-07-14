@@ -10,7 +10,7 @@ import java.io.InputStream;
 import java.io.Serializable;
 
 /**
- * @author 陈俊雄
+ * @author chanjx
  * @since 2020/10/21
  **/
 @Accessors(chain = true)

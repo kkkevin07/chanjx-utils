@@ -5,7 +5,7 @@ import java.util.Iterator;
 /**
  * 字符串操作工具
  *
- * @author 陈俊雄
+ * @author chanjx
  **/
 public abstract class StringUtils extends org.apache.commons.lang3.StringUtils {
     /**
