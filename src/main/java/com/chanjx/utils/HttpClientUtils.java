@@ -36,7 +36,7 @@ import static org.apache.hc.core5.http.ContentType.APPLICATION_XML;
  * @since 2020/5/14
  **/
 @Slf4j
-public abstract class HttpClientUtils {
+public class HttpClientUtils {
 
     private HttpClientUtils() {
     }

@@ -17,13 +17,16 @@ import java.util.Map;
  * @author chanjx
  * @since 2020/11/17
  **/
-public abstract class XmlUtils {
+public class XmlUtils {
 
     private static final XmlMapper MAPPER = new XmlMapper();
 
     static {
         // 反序列化忽略Json对象在实体类中没有的字段
         MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    }
+
+    private XmlUtils() {
     }
 
     public static String obj2Xml(Object obj) throws JsonProcessingException {

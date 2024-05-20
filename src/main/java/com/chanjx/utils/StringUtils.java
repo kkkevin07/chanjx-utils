@@ -7,7 +7,11 @@ import java.util.Iterator;
  *
  * @author chanjx
  **/
-public abstract class StringUtils extends org.apache.commons.lang3.StringUtils {
+public class StringUtils extends org.apache.commons.lang3.StringUtils {
+
+    private StringUtils() {
+    }
+
     /**
      * <p>Joins the elements of the provided varargs into a
      * single String containing the provided elements.</p>

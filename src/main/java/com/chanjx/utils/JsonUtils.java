@@ -32,7 +32,7 @@ import static com.chanjx.utils.JsonUtils.MapperKey.*;
  * @author chanjx
  **/
 @Slf4j
-public abstract class JsonUtils {
+public class JsonUtils {
 
     private static final ObjectMapper MAPPER =
             new ObjectMapper()
@@ -67,6 +67,9 @@ public abstract class JsonUtils {
                                             .setSerializationInclusion(JsonInclude.Include.NON_NULL));
                         }
                     });
+
+    private JsonUtils() {
+    }
 
     /**
      * 实体类转json字符串
