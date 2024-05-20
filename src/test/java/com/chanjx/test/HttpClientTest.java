@@ -5,6 +5,7 @@ import com.chanjx.utils.entity.http.HttpResponse;
 import org.apache.hc.core5.http.ContentType;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 
@@ -19,9 +20,9 @@ import java.nio.charset.StandardCharsets;
 public class HttpClientTest {
 
     @Test
-    void name() throws URISyntaxException {
+    void name() throws URISyntaxException, IOException {
         final HttpResponse httpResponse = HttpClientUtils.doGet("https://www.baidu.com");
-        final byte[] byteBody = httpResponse.getByteBody();
+        final byte[] byteBody = httpResponse.getBody();
         System.out.println(new String(byteBody, StandardCharsets.UTF_8));
     }
 

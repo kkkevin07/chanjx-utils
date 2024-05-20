@@ -1,6 +1,7 @@
 package com.chanjx.utils.entity.http;
 
 import com.chanjx.utils.FileUtils;
+import lombok.Data;
 import lombok.experimental.Accessors;
 import org.apache.commons.io.IOUtils;
 
@@ -13,14 +14,15 @@ import java.io.Serializable;
  * @author chanjx
  * @since 2020/10/21
  **/
+@Data
 @Accessors(chain = true)
 public class BaseFile implements Serializable {
 
-    protected byte[] fileBytes;
+    private final byte[] fileBytes;
 
-    protected String fileName;
+    private final String fileName;
 
-    protected String mimeType;
+    private final String mimeType;
 
     public BaseFile(File file) throws IOException {
         this.fileBytes = FileUtils.readFileToByteArray(file);
@@ -51,17 +53,4 @@ public class BaseFile implements Serializable {
         this.fileName = fileName;
         this.mimeType = mimeType;
     }
-
-    public byte[] getFileBytes() {
-        return this.fileBytes;
-    }
-
-    public String getMimeType() {
-        return mimeType;
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
 }

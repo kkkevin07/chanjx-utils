@@ -2,6 +2,7 @@ package com.chanjx.utils.entity.http;
 
 import com.chanjx.utils.StringUtils;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.experimental.Accessors;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.Header;
@@ -17,8 +18,9 @@ import java.util.stream.Collectors;
  * @author chanjx
  * @since 2020/11/9
  **/
-@EqualsAndHashCode(callSuper = false)
+@Getter
 @Accessors(chain = true)
+@EqualsAndHashCode(callSuper = false)
 public class HttpResponse implements Serializable {
 
     /**
@@ -49,12 +51,12 @@ public class HttpResponse implements Serializable {
     /**
      * Body mime type
      */
-    private String mimeType;
+    private final String mimeType;
 
     /**
      * Body charset
      */
-    private Charset charset;
+    private final Charset charset;
 
     /**
      * Body to string
@@ -66,46 +68,20 @@ public class HttpResponse implements Serializable {
         this.headers = Arrays.asList(headers);
         this.body = body;
         this.contentType = contentType;
-    }
-
-    public Integer getStatus() {
-        return this.status;
-    }
-
-    public List<Header> getHeaders() {
-        return this.headers;
+        this.mimeType =
+                this.contentType != null
+                        ? this.contentType.getMimeType()
+                        : null;
+        this.charset =
+                this.contentType != null && this.contentType.getCharset() != null
+                        ? this.contentType.getCharset()
+                        : DEFAULT_CHARSET;
     }
 
     public List<Header> getHeaders(String name) {
         return this.headers.stream()
                 .filter(header -> header.getName().equals(name))
                 .collect(Collectors.toList());
-    }
-
-    public byte[] getByteBody() {
-        return this.body;
-    }
-
-    public ContentType getContentType() {
-        return this.contentType;
-    }
-
-    public Charset getCharset() {
-        if (this.charset == null) {
-            if (this.contentType != null && this.contentType.getCharset() != null) {
-                this.charset = this.contentType.getCharset();
-            } else {
-                this.charset = DEFAULT_CHARSET;
-            }
-        }
-        return this.charset;
-    }
-
-    public String getMimeType() {
-        if (StringUtils.isBlank(this.mimeType) && this.contentType != null) {
-            this.mimeType = this.contentType.getMimeType();
-        }
-        return this.mimeType;
     }
 
     public String getStrBody() {

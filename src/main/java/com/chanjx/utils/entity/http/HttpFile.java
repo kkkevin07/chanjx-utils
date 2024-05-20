@@ -1,6 +1,8 @@
 package com.chanjx.utils.entity.http;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 import java.io.File;
@@ -11,11 +13,13 @@ import java.io.InputStream;
  * @author chanjx
  * @since 2020/10/20
  **/
-@EqualsAndHashCode(callSuper = true)
+@Getter
+@ToString(callSuper = true)
 @Accessors(chain = true)
+@EqualsAndHashCode(callSuper = true)
 public class HttpFile extends BaseFile {
 
-    private String key;
+    private final String key;
 
     public HttpFile(File file, String key) throws IOException {
         super(file);
@@ -39,14 +43,6 @@ public class HttpFile extends BaseFile {
 
     public HttpFile(byte[] fileBytes, String fileName, String mimeType, String key) {
         super(fileBytes, fileName, mimeType);
-        this.key = key;
-    }
-
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
         this.key = key;
     }
 }
